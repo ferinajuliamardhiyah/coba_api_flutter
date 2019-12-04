@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AddList extends StatelessWidget {
-  final handleToDo;
+  final handleTodo;
 
-  AddList(this.handleToDo);
+  AddList(this.handleTodo);
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class AddList extends StatelessWidget {
             helperText: 'Tuliskan Tugas Baru'
           ),
           onSubmitted: (val) {
-            handleToDo(val);
+            handleTodo(val);
             Navigator.pop(context);
           },
         ),

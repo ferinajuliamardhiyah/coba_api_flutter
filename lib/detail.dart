@@ -11,11 +11,16 @@ class DetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(todo.tugas),
+        title: Text('${todo.name}'),
         ),
       body: Padding(
         padding: EdgeInsets.all(10.0),
-        child: Text(todo.deskripsi),
+        child: Column(
+          children: <Widget>[
+            Text('${todo.id}'),
+            Text('${todo.address}'),
+          ],
+        )
       ),
     );
   }

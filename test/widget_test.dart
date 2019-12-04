@@ -7,24 +7,48 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+//import 'package:todo_app_flutter/widgets/listcounter.dart';
+import 'package:cobacobi/dashboard.dart';
 
-import 'package:cobacobi/main.dart';
+// class TestWidget extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(home: ListCounter('Hai', 'Available', Colors.blue, Icons.check));
+//   }
+// }
+
+// void main() {
+//   testWidgets('test ListCounter widget', (WidgetTester tester) async {
+//     await tester.pumpWidget(TestWidget());
+
+//     final textFinder = find.text('Hai');
+//     final iconFinder = find.text('Available');
+
+//     expect(textFinder, findsOneWidget);
+//     expect(iconFinder, findsOneWidget);
+//   });
+  
+// }
+
+class TestWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(home: ToDoScreen());
+  }
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  
+  testWidgets('test Dismissible', (WidgetTester tester) async {
+    await tester.pumpWidget(TestWidget());
+    await tester.drag(find.byType(Dismissible), Offset(500.0, 0.0));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    //final iconFinder = find.byIcon(Icons.delete);
+    final textFinder = find.widgetWithText(ListTile, 'Tugas Ke-');
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
+    //expect(iconFinder, findsOneWidget);
+    expect(textFinder, findsNothing);
+  }
+  );
 }

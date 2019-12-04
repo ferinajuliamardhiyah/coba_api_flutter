@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'ToDos in Flutter',
-      initialRoute: '/',
+      initialRoute: '/dashboard',
       routes: {
         "/": (context) => LoginPage(),
         "/dashboard": (context) => ToDoScreen()

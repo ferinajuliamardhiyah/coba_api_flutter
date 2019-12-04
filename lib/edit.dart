@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 class EditList extends StatelessWidget {
   final Todo todos;
   final index;
-  final editToDo;
+  final editTodo;
 
-  EditList({Key key, @required this.todos, this.index, this.editToDo})
+  EditList({Key key, @required this.todos, this.index, this.editTodo})
       : super(key: key);
 
   @override
@@ -15,9 +15,10 @@ class EditList extends StatelessWidget {
       appBar: AppBar(title: Text('Edit List')),
       body: Container(
           child: TextFormField(
-        initialValue: todos.tugas,
+        initialValue: todos.name,
         onFieldSubmitted: (val) {
-          editToDo(val, index);
+          Todo tu = Todo(val);
+          editTodo(tu, index);
           Navigator.pop(context);
         },
       )),

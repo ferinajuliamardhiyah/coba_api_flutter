@@ -1,7 +1,6 @@
 import 'package:cobacobi/add.dart';
 import 'package:cobacobi/detail.dart';
 import 'package:cobacobi/edit.dart';
-//import 'package:cobacobi/detail.dart';
 import 'package:cobacobi/todo.dart';
 import 'package:flutter/material.dart';
 
@@ -10,51 +9,59 @@ class ToDoScreen extends StatefulWidget {
 }
 
 class _ToDoScreenState extends State<ToDoScreen> {
-  List<Todo> todos = List.generate(8, (i) => Todo('Tugas Ke-${i+1}', 'Review Materi Hari Ke-${i+1}'));
+  List<Todo> todos;
+  bool allCheck = false;
+  bool loading = true;
 
-  handleToDo(todo) {
+  void getTodos() async {
+    var response = await Todo.getTodos();
     setState(() {
-      todos.add(Todo('$todo', 'Review Materi $todo'));
+      todos = response;
+      loading = false;
     });
   }
 
-  removeToDo(index) {
-    setState(() {
-      todos.removeAt(index);
-    });
+  @override
+  void initState() {
+    super.initState();
+    getTodos();
   }
 
-  editToDo(tu, index) {
-    setState(() {
-      todos[index].tugas = tu;
-    });
+  handleTodo(todo) {
+    Todo.postTodo({'name': todo, 'favorite': false});
+    getTodos();
+  }
+
+  editTodos(Todo todo, index) {
+    Todo.editTodo({"name": todo.name}, todo.id);
   }
 
   checkList(val, index) {
     setState(() {
-      todos[index].check = val;
+      todos[index].favorite = val;
     });
+    Todo.editTodo({'favorite': val}, todos[index].id);
   }
 
   checkListAll(val) {
     setState(() {
       for (var i in todos) {
-        i.check = val;
+        i.favorite = val;
+        Todo.editTodo({'favorite': val}, i.id);
       }
       allCheck = val;
     });
   }
 
-  bool allCheck = false;
-
   deleteAll() {
     setState(() {
-      for (int i = 0; i < todos.length; i++) {
-        if (todos[i].check) {
-          todos.removeAt(i);
-          i--;
+      for (var i in todos) {
+        if (i.favorite) {
+          Todo.removeTodo(i.id);
+          getTodos();
         }
       }
+      allCheck=false;
     });
   }
 
@@ -62,7 +69,7 @@ class _ToDoScreenState extends State<ToDoScreen> {
     int jumlah = 0;
     setState(() {
       for (var item in todos) {
-        if (item.check) {
+        if (item.favorite) {
           jumlah++;
         }
       }
@@ -84,92 +91,96 @@ class _ToDoScreenState extends State<ToDoScreen> {
               BuildButtonComponent(
                   Colors.green, Icons.check, 'Done', jumlahChecked()),
               BuildButtonComponent(Colors.orange, Icons.calendar_today, 'Todo',
-                  todos.length-jumlahChecked()),
+                  todos.length - jumlahChecked()),
               BuildButtonComponent(
                   Colors.blue, Icons.person_outline, 'Total', todos.length)
             ],
           )),
           Container(
-              margin: EdgeInsets.only(top: 10),
               child: todos.length == 0
-              ? Text('No Data(s) Yet. Please Add New One', style: TextStyle(fontSize: 20))
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                Container(
-                  child: Row(
-                    children: <Widget>[
-                      Text('Check All'),
-                      Checkbox(
-                        value: allCheck,
-                        onChanged: (bool val) {
-                          checkListAll(val);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                RaisedButton.icon(
-                    color: Colors.red,
-                    icon: Icon(Icons.delete),
-                    label: Text('Delete All Checked'),
-                    onPressed: () {
-                      deleteAll();
-                      allCheck=false;
-                    })
-              ])
-              ),
-          Container(
-            padding: EdgeInsets.only(top: 10),
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 0.575,
+                  ? Text('No Data(s) Yet. Please Add New One',
+                      style: TextStyle(fontSize: 20))
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                Text('Check All'),
+                                Checkbox(
+                                  value: allCheck,
+                                  onChanged: (bool val) {
+                                    checkListAll(val);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          RaisedButton.icon(
+                              color: Colors.white,
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              label: Text('Delete All Checked',
+                                  style: TextStyle(color: Colors.red)),
+                              onPressed: () {
+                                deleteAll();
+                              })
+                        ])),
+          Expanded(
             child: ListView.builder(
                 itemCount: todos.length,
                 itemBuilder: (context, index) {
                   return Dismissible(
-                      key: ValueKey(todos[index].tugas),
+                      key: ValueKey(todos[index]),
                       onDismissed: (direction) {
-                        removeToDo(index);
+                        Todo.removeTodo(todos[index].id);
+                        todos.removeAt(index);
+                        getTodos();
                       },
                       child: Card(
                           child: ListTile(
-                              leading: Checkbox(
-                                value: todos[index].check,
-                                onChanged: (bool newValue) {
-                                  todos[index].check = newValue;
-                                  checkList(newValue, index);
-                                  if(todos[index].check==false) {
-                                    allCheck = false;
-                                  }
-                                  var jum = 0;
-                                  for (var i = 0; i < todos.length; i++) {
-                                    if(todos[i].check==true) {
-                                      jum++;
-                                    }
-                                  }
-                                  if (jum==todos.length) {
-                                    allCheck=true;
-                                  }
-                                },
-                              ),
-                              title: todos[index].check==false
-                              ? Text(todos[index].tugas)
-                              : Text(todos[index].tugas, style: TextStyle(color: Colors.grey, decoration: TextDecoration.lineThrough)),
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => EditList(
-                                            todos: todos[index],
-                                            index: index,
-                                            editToDo: editToDo)));
-                              },
-                              onLongPress: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                  builder: (context) => DetailScreen(todo: todos[index])
-                                ));
-                              },
-                              )));
+                        leading: Checkbox(
+                          value: todos[index].favorite,
+                          onChanged: (bool newValue) {
+                            todos[index].favorite = newValue;
+                            checkList(newValue, index);
+                            if (todos[index].favorite == false) {
+                              allCheck = false;
+                            }
+                            var jum = 0;
+                            for (var i = 0; i < todos.length; i++) {
+                              if (todos[i].favorite == true) {
+                                jum++;
+                              }
+                            }
+                            if (jum == todos.length) {
+                              allCheck = true;
+                            }
+                          },
+                        ),
+                        title: todos[index].favorite == false
+                            ? Text(todos[index].name)
+                            : Text(todos[index].name,
+                                style: TextStyle(
+                                    color: Colors.grey,
+                                    decoration: TextDecoration.lineThrough)),
+                        onLongPress: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => EditList(
+                                      todos: todos[index],
+                                      index: index,
+                                      editTodo: editTodos)));
+                        },
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      DetailScreen(todo: todos[index])));
+                        },
+                      )));
                 }),
           )
         ]),
@@ -178,7 +189,7 @@ class _ToDoScreenState extends State<ToDoScreen> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddList(handleToDo),
+                    builder: (context) => AddList(handleTodo),
                   ));
             },
             child: Icon(Icons.add)));
@@ -193,21 +204,19 @@ class BuildButtonComponent extends StatelessWidget {
   BuildButtonComponent(this.color, this.icon, this.label, this.jumlah);
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-        width: 125,
-        height: 150,
+    return Expanded(
         child: Card(
             child: Column(
-          children: <Widget>[
-            Text(label,
-                style: TextStyle(
-                  fontSize: 40,
-                  color: color,
-                )),
-            Icon(icon, color: color, size: 60),
-            Text(jumlah.toString(),
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))
-          ],
-        )));
+      children: <Widget>[
+        Text(label,
+            style: TextStyle(
+              fontSize: 40,
+              color: color,
+            )),
+        Icon(icon, color: color, size: 60),
+        Text(jumlah.toString(),
+            style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))
+      ],
+    )));
   }
 }
